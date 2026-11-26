@@ -22,8 +22,9 @@ profiles that were already here came without attribution notes.
 | `1990_IBM_WDL-330P_3600RPM_RUNNING.wav` | `drive_spin.wav` | 30 ms equal-power crossfade at the loop seam, so the file is 30 ms shorter |
 | `1990_IBM_WDL-330P_3600RPM_SPINDOWN.wav` | `drive_spin_down.wav` | renamed only (samples bit-identical) |
 | `1990_IBM_WDL-330P_3600RPM_SEEK_1TRACK.wav` | `drive_seek.wav` | renamed only (samples bit-identical) |
+| `1990_IBM_WDL-330P_3600RPM_SEEK_LONG.wav` | `drive_seek_long.wav` | renamed only (samples bit-identical) |
 
 All four were written by `tools/ambient/prepare_samples.py`, which also
 rewrites each file with the plain 44-byte WAV header 86Box's loader
-requires. IBMulator's `drive_seek_long.wav` isn't used, because 86Box HDD
-profiles have only one seek sound.
+requires. `SEEK_LONG` plays for seeks of 100 cylinders or more (`seek_long_cylinders`
+in the profile), about a sixth of this 615-cylinder drive's stroke.
