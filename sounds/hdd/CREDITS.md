@@ -20,7 +20,7 @@ profiles that were already here came without attribution notes.
 |---|---|---|
 | `1990_IBM_WDL-330P_3600RPM_SPINUP.wav` | `drive_spin_up.wav` | renamed only (samples bit-identical) |
 | `1990_IBM_WDL-330P_3600RPM_RUNNING.wav` | `drive_spin.wav` | 30 ms equal-power crossfade at the loop seam, so the file is 30 ms shorter |
-| `1990_IBM_WDL-330P_3600RPM_SPINDOWN.wav` | `drive_spin_down.wav` | renamed only (samples bit-identical) |
+| `1990_IBM_WDL-330P_3600RPM_SPINDOWN.wav` | `drive_spin_down.wav` | first 700 ms capped at -34.6 dBFS (4 dB above the running sound) to soften the brake thump; the rest unchanged |
 | `1990_IBM_WDL-330P_3600RPM_SEEK_1TRACK.wav` | `drive_seek.wav` | renamed only (samples bit-identical) |
 | `1990_IBM_WDL-330P_3600RPM_SEEK_LONG.wav` | `drive_seek_long.wav` | renamed only (samples bit-identical) |
 
