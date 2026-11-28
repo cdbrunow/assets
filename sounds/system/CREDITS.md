@@ -17,7 +17,7 @@
 |---|---|---|
 | `IBM_PS1_2121_POWER_UP.wav` | `power_up.wav` | renamed only (samples bit-identical) |
 | `IBM_PS1_2121_POWER_ON.wav` | `power_on.wav` | 30 ms equal-power crossfade at the loop seam, so the file is 30 ms shorter |
-| `IBM_PS1_2121_POWER_DOWN.wav` | `power_down.wav` | header rewritten (samples bit-identical) |
+| `IBM_PS1_2121_POWER_DOWN.wav` | `power_down.wav` | header rewritten; first 350 ms capped at -41.7 dBFS (4 dB above the running fan) to soften the switch click; the rest unchanged |
 
 All three were written by `tools/ambient/prepare_samples.py`. The original
 `power_down.wav` has an 18-byte `fmt ` chunk, which 86Box's WAV loader
