@@ -10,7 +10,8 @@ For each input file this script:
   1. converts it to 16-bit PCM at 48 kHz with SoX, keeping the channel count
      (resampling uses SoX's very-high-quality "rate -v" only when needed);
   2. optionally trims leading/trailing silence and peak-normalizes
-     (--trim-db, --normalize-db; both off by default);
+     (--trim-db, --normalize-db; both off by default), and can cap a loud
+     start, e.g. a switch click or a disk's brake thump (--cap);
   3. for --loop files, reports the loop seam and optionally crossfades it
      (--crossfade-ms);
   4. writes the result with Python's wave module, which always produces the
@@ -93,6 +94,30 @@ def normalize(frames, peak_db):
     return frames * (32767.0 * 10 ** (peak_db / 20) / peak)
 
 
+def cap_start(frames, ms, cap_db, block_ms=5.0, release_ms=30.0):
+    """Keep the first `ms` milliseconds at or below `cap_db` dBFS (RMS over
+    `block_ms` blocks): louder blocks are turned down to the cap, with the
+    gain interpolated between blocks so there are no steps. Over the last
+    `release_ms` the cap fades out, so the sample continues unchanged."""
+    n   = min(int(RATE * ms / 1000), len(frames))
+    blk = max(int(RATE * block_ms / 1000), 1)
+    cap = 32768.0 * 10 ** (cap_db / 20)
+    centers, gains = [], []
+    for start in range(0, n, blk):
+        seg = frames[start:min(start + blk, n)]
+        rms = float(np.sqrt(np.mean(seg ** 2))) or 1e-9
+        centers.append(start + len(seg) / 2)
+        gains.append(min(1.0, cap / rms))
+    g = np.interp(np.arange(n), centers, gains)
+    rel = min(int(RATE * release_ms / 1000), n)
+    if rel:
+        t = np.linspace(0.0, 1.0, rel)
+        g[n - rel:] = g[n - rel:] * (1 - t) + t
+    out = frames.copy()
+    out[:n] *= g[:, None]
+    return out
+
+
 def seam_report(frames):
     """Describe how smoothly the end of a loop runs into its start.
 
@@ -141,6 +166,8 @@ def main():
                     help="trim leading/trailing audio below DB dBFS")
     ap.add_argument("--normalize-db", type=float, metavar="DB",
                     help="scale so the peak is DB dBFS (e.g. -1)")
+    ap.add_argument("--cap", metavar="MS:DBFS",
+                    help="keep the first MS ms at or below DBFS (5 ms RMS), releasing over 30 ms")
     ap.add_argument("--loop", action="store_true",
                     help="inputs are loops: report the seam")
     ap.add_argument("--crossfade-ms", type=float, metavar="MS",
@@ -166,6 +193,10 @@ def main():
                 before = len(frames)
                 frames = trim_silence(frames, args.trim_db)
                 notes.append(f"trimmed {before - len(frames)} frames")
+            if args.cap:
+                ms, cap_db = (float(x) for x in args.cap.split(":"))
+                frames = cap_start(frames, ms, cap_db)
+                notes.append(f"first {ms:g} ms capped at {cap_db:g} dBFS")
             if args.normalize_db is not None:
                 frames = normalize(frames, args.normalize_db)
                 notes.append(f"peak -> {args.normalize_db} dBFS")
